@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AAROGYA VAANI | Future Health Governance</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" href="favicon-ds.jpg" type="image/jpg">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- MarkerCluster for dense urban marker grouping -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+</head>
+
+<body>
+
+    <div id="loader-screen">
+        <div class="loader-content">
+            <div class="voice-visualizer">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <div class="logo-wrapper">
+                <span class="hindi-text">आरोग्य</span><span class="eng-text">VAANI</span>
+            </div>
+            <p class="tagline">BRIDGING VOICE TO VISION</p>
+            <div class="status-container">
+                <p class="changing-text">INITIALIZING SYSTEM...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-watermark"><img src="tryy.png" alt="Govt Watermark"></div>
+
+    <div class="glass-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <img src="favicon2.jpg" alt="Delhi Sudarshan Logo" class="main-logo-img">
+                <h2>आरोग्य VAANI<span class="dot"></span></h2>
+            </div>
+            <nav>
+                <button class="nav-btn active" onclick="openTab('dashboard')"><i class="ri-dashboard-3-line"></i>
+                    <span>Mission Control</span></button>
+                <button class="nav-btn" onclick="openTab('complaints')"><i class="ri-radar-line"></i> <span>Patient 
+                        Records</span></button>
+                <button class="nav-btn" onclick="openTab('reports')"><i class="ri-file-chart-line"></i> <span>ASHA Performance
+                        </span></button>
+                <button class="nav-btn" onclick="openTab('inventory')"><i class="ri-medicine-bottle-line"></i> <span>Pharma Logistics</span></button>
+                <button class="nav-btn" onclick="openTab('community')"><i class="ri-broadcast-fill"></i> <span>Community Hub</span></button>
+                <button class="nav-btn" onclick="openTab('officer')"><i class="ri-shield-user-line"></i> <span>CMO   
+                        ID</span></button>
+            </nav>            
+            <div class="status-box"><span class="status-dot"></span> System Online</div>
+        </aside>
+
+        <main class="content-area">
+            <div id="dashboard" class="view active-view">
+                <header class="glass-header">
+                    <h1>CMO COMMAND CENTER<span class="badge-live">LIVE</span></h1>
+                    <p class="subtitle">Real-time AI surveillance of frontline healthcare across the district.</p>
+                </header>
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <h3>TOTAL PATIENTS VISITED</h3>
+                        <h1>243,301</h1>
+                        <div class="progress-bar">
+                            <div class="fill" style="width: 80%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>MEDICINES DISTRIBUTED</h3>
+                        <h1 class="success">205,567</h1>
+                        <div class="progress-bar">
+                            <div class="fill success-bg" style="width: 60%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>ASHA WORKERS</h3>
+                        <h1 class="danger">1215</h1>
+                        <div class="progress-bar">
+                            <div class="fill danger-bg" style="width: 20%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-panel" style="display: flex; flex-direction: column;">
+                    <h3>Health Records</h3>
+                    <div class="chart-wrapper" style="height: 300px;">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div id="complaints" class="view">
+                <header class="glass-header header-with-filter">
+                    <div class="header-content">
+                        <h1>Patient's Record</h1>
+                        <p class="subtitle">Voice-to-Text Transmissions from Asha workers.</p>
+                    </div>
+                    <div class="filter-wrapper">
+                        <i class="ri-filter-3-line"></i>
+                        <select id="statusFilter" onchange="filterTable()">
+                            <option value="All">All Status</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Verified">Verified</option>                            
+                            <option value="Follow-up">Follow-up</option>
+                            <option value="Discrepancy" style="color:red; font-weight:bold;">Discrepancy</option>
+                        </select>
+                    </div>
+                </header>
+                <div class="glass-panel no-padding-panel">
+                    <div class="table-wrapper">
+                        <table id="complaintsTable">
+                            <thead>
+                                <tr>
+                                    <th>PMR ID</th>
+                                    <th>Health Type</th>
+                                    <th>Location</th>
+                                    <th>Medicines</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="reports" class="view reports-video-view">
+                <!-- Video Background for ASHA Performance section -->
+                <!-- <video class="reports-bg-video" autoplay loop muted playsinline>
+                    <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260325_094440_a3592600-bd1e-49e5-9bce-a73662061d83.mp4" type="video/mp4">
+                </video>
+                <div class="reports-video-overlay"></div> -->
+                <header class="glass-header header-with-filter">
+                    <div class="header-content">
+                        <h1>ASHA Workers' Performance</h1>
+                        <p class="subtitle">Trust scores, incentive tracking analytics..</p>
+                    </div>
+                    
+                    <div class="filter-wrapper" style="background: transparent; box-shadow: none; border: none; gap: 15px; padding: 0;">
+                        
+                        <div style="display: flex; align-items: center; background: white; padding: 8px 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05);">
+                            <i class="ri-search-line" style="color: var(--primary); font-size: 1.1rem; margin-right: 8px;"></i>
+                            <input type="text" id="ashaSearch" placeholder="Search AWR ID..." onkeyup="filterAshaTable()" style="border: none; outline: none; font-family: 'Outfit', sans-serif; font-size: 0.95rem; width: 160px; background: transparent;">
+                        </div>
+
+                        <div style="display: flex; align-items: center; background: white; padding: 8px 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05);">
+                            <i class="ri-filter-3-line" style="color: var(--primary); font-size: 1.1rem; margin-right: 8px;"></i>
+                            <select id="ashaStatusFilter" onchange="filterAshaTable()" style="border: none; outline: none; background: transparent; font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--text); cursor: pointer;">
+                                <option value="All">All Status</option>
+                                <option value="Active">Active IDs</option>
+                                <option value="Blocked" style="color: #dc2626; font-weight: bold;">Blocked IDs</option>
+                            </select>
+                        </div>
+
+                    </div>
+                </header>
+                <div class="stats-row">
+                    <div class="stat-card highlight-card">
+                        <div class="badge-icon"><i class="ri-trophy-line"></i></div>
+                        <h3>Top Performer</h3>
+                        <h1 id="best-dept-name">Meena Devi</h1>
+                        <p class="stat-sub">98% Verified Visits</p>
+                        <div class="progress-bar">
+                            <div class="fill success-bg" style="width: 98%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>MOST ACTIVE WORKER</h3>
+                        <h1 id="fastest-dept-name">Sunita Sharma</h1>
+                        <p class="stat-sub">Avg Visit: <span class="highlight-text">12/day</span></p>
+                        <div class="progress-bar">
+                            <div class="fill" style="width: 90%; background: #06b6d4;"></div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Deactivated ID</h3>
+                        <h1 id="busy-dept-name">2</h1>
+                        <p class="stat-sub">Under Investigation</p>
+                        <div class="progress-bar">
+                            <div class="fill danger-bg" style="width: 85%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-panel no-padding-panel">
+                    <div class="table-wrapper">
+                        <table id="complaintsTable">
+                            <thead>
+                                <tr>
+                                    <th>AWR ID</th>
+                                    <th>Name</th>
+                                    <th>Zone</th>
+                                    <th>Performance</th>
+                                    <th>Incentive</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody2"></tbody>
+                        </table>
+                    </div>
+                </div> 
+            </div>
+
+
+            <div id="inventory" class="view">
+                <header class="glass-header">
+                    <div class="header-content">
+                        <h1>Pharma Logistics & Supply Chain <span class="badge-live" style="background:#dbeafe; color:#1d4ed8; border-color:#bfdbfe;"><i class="ri-shield-check-fill"></i> ANTI-LEAKAGE ACTIVE</span></h1>
+                        <p class="subtitle">Automated stock tracking based on ASHA Voice Agent data. Bypassing middlemen with direct-to-warehouse ordering.</p>
+                    </div>
+                </header>
+
+                <div class="stats-row">
+                    <div class="stat-card highlight-card">
+                        <div class="badge-icon" style="background: #e0f2fe; color: #0284c7;"><i class="ri-capsule-line"></i></div>
+                        <h3>TOTAL MEDS DISPENSED</h3>
+                        <h1 id="inv-total-dispensed">0</h1>
+                        <p class="stat-sub">Verified via Voice Agent</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="badge-icon" style="background: #fef2f2; color: #dc2626;"><i class="ri-alert-line"></i></div>
+                        <h3>CRITICAL STOCK ALERTS</h3>
+                        <h1 id="inv-alerts" class="danger">0</h1>
+                        <p class="stat-sub">Requires Immediate Restock</p>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer; border: 2px solid transparent; transition: 0.3s;" onclick="openDispatchModal()" onmouseover="this.style.borderColor='#10b981'" onmouseout="this.style.borderColor='transparent'">
+                        <div class="badge-icon" style="background: #dcfce7; color: #16a34a;"><i class="ri-truck-line"></i></div>
+                        <h3>PENDING DISPATCHES</h3>
+                        <h1 id="inv-orders">2</h1>
+                        <p class="stat-sub" style="color: #16a34a; font-weight: bold;">Click to Track Orders <i class="ri-arrow-right-line"></i></p>
+                    </div>
+                </div>
+
+                <div class="glass-panel" style="flex: 1; overflow-y: auto; padding: 25px;">
+                    <div class="inventory-grid" id="inventoryGrid">
+                        </div>
+                </div>
+            </div>
+
+            <div id="community" class="view">
+    <header class="glass-header">
+        <div class="header-content">
+            <h1>ASHA Community Network <span class="badge-live" style="background:#dcfce7; color:#16a34a; border-color:#bbf7d0;"><i class="ri-radio-2-line"></i> ACTIVE</span></h1>
+            <p class="subtitle">Broadcast emergency alerts, camp assignments, and updates to zone-specific workers.</p>
+        </div>
+    </header>
+
+    <div style="display: flex; gap: 25px; height: calc(100% - 120px);">
+        
+        <!-- LEFT: DISPATCH CONSOLE -->
+        <div class="glass-panel" style="flex: 1; display: flex; flex-direction: column;">
+            <h3 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: var(--text);">
+                <div class="icon-box" style="width:35px; height:35px; border-radius:10px;"><i class="ri-send-plane-fill"></i></div> 
+                New Broadcast Dispatch
+            </h3>
+            
+            <div class="broadcast-form">
+                <label>Target Zone</label>
+                <select id="bc-zone" class="broadcast-input">
+                    <option value="All Zones">All Zones (District Wide)</option>
+                    <option value="South Zone">South Zone</option>
+                    <option value="South-West Zone">South-West Zone</option>
+                    <option value="North Zone">North Zone</option>
+                </select>
+
+                <label>Alert Type</label>
+                <select id="bc-type" class="broadcast-input">
+                    <option value="Vaccination Camp">Vaccination Camp Assignment</option>
+                    <option value="Emergency Alert" style="color:red; font-weight:bold;">Medical Emergency Alert</option>
+                    <option value="Meeting">Monthly Meeting</option>
+                    <option value="Protocol Update">Protocol Update</option>
+                </select>
+
+                <label>Official Message</label>
+                <textarea id="bc-msg" class="broadcast-input" rows="5" placeholder="Type your message here..."></textarea>
+
+                <button class="btn-order active" onclick="sendBroadcast()" style="margin-top: 15px; font-size: 1.05rem; padding: 12px;">
+                    <i class="ri-message-3-fill"></i> Dispatch SMS to Workers
+                </button>
+            </div>
+        </div>
+
+        <!-- RIGHT: BROADCAST HISTORY -->
+        <div class="glass-panel no-padding-panel" style="flex: 1.2;">
+            <div style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.3);">
+                <h3 style="margin: 0; color: var(--text);"><i class="ri-history-line"></i> Official Dispatch Ledger</h3>
+            </div>
+            <div id="broadcastHistoryList" style="padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 15px;">
+                <!-- History Cards inject here -->
+            </div>
+        </div>
+
+    </div>
+</div>
+
+            <div id="officer" class="view">
+                <div class="profile-container">
+                    <div class="glass-card-large">
+                        <div class="profile-header">
+                            <div class="avatar-wrapper">
+                                <img src="officer.jpg" alt="Officer" class="avatar-img">
+                                <div class="verify-badge"><i class="ri-checkbox-circle-fill"></i></div>
+                            </div>
+                            <div class="header-text">
+                                <h1>Dr. Riya</h1>
+                                <p class="designation">Chief Medical Officer • Grade A</p>
+                            </div>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="info-grid">
+                            <div class="info-box">
+                                <div class="icon-box"><i class="ri-government-line"></i></div>
+                                <div><span class="label">Department</span>
+                                    <p class="value">State Health Commission</p>
+                                </div>
+                            </div>
+                            <div class="info-box">
+                                <div class="icon-box"><i class="fa-solid fa-id-card"></i></div>
+                                <div><span class="label">Official ID</span>
+                                    <p class="value">DL-09-X45</p>
+                                </div>
+                            </div>
+                            <div class="info-box">
+                                <div class="icon-box"><i class="ri-map-pin-user-line"></i></div>
+                                <div><span class="label">Region</span>
+                                    <p class="value">South Delhi</p>
+                                </div>
+                            </div>
+                            <div class="info-box">
+                                <div class="icon-box"><i class="ri-smartphone-line"></i></div>
+                                <div><span class="label">Contact</span>
+                                    <p class="value">+91 98*****890</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div id="analyzeModal" class="modal-overlay">
+            <div class="glass-modal-box">
+                <button class="close-btn" onclick="closeAnalyzeModal()">&times;</button>
+                <div class="modal-header">
+                    <h2>Patient Analysis</h2><span class="status-pill" id="m-status">Follow-up</span>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-img-container"><img id="m-photo" src="" alt="Evidence">
+                        <div class="img-badge">Evidence Photo</div>
+                    </div>
+                    <div class="modal-details">
+                        <div class="detail-group"><label>Asha Worker Voice Summary</label>
+                            <div class="desc-box">
+                                <p id="m-desc">...</p>
+                            </div>
+                        </div>
+
+                        <div class="detail-grid">
+                            <div class="detail-item"><label>Date Received:</label>
+                                <h3 id="m-date" style="color:var(--text);">...</h3>
+                            </div>
+                            <div class="detail-item"><label>Patient Mobile:</label>
+                                <h3 id="m-phone" style="color:var(--primary); cursor:pointer;" title="Contact Citizen">
+                                    ...</h3>
+                            </div>
+                        </div>
+
+                        <div class="detail-grid">
+                            <div class="detail-item"><label>Date Received:</label>
+                                <h3 id="m-follow-date" style="color:var(--text);">...</h3>
+                            </div>
+                            <div class="detail-item"><label>Health Issue:</label>
+                                <p id="m-type" style="color:var(--primary); font-weight:700;">...</p>
+                            </div>
+                        </div>
+
+                        <div class="detail-group">
+                            <label>Assigned Asha Worker:</label>
+                            <p id="m-dept" style="color:var(--primary); font-weight:700;">...</p>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button class="modal-action-btn danger" onclick="updateStatus('Rejected')"><i
+                                    class="ri-spam-line"></i>Patient's Assurance Call</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+         <div id="ashaanalyzeModal" class="modal-overlay">
+            <div class="glass-modal-box">
+                <button class="close-btn" onclick="closeAnalyzeModal()">&times;</button>
+                <div class="modal-header">
+                    <h2>Field Operations Ledger</h2>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-img-container"><img id="m-photo" src="" alt="Evidence">
+                        <div class="img-badge">Evidence Photo</div>
+                    </div>
+                    <div class="modal-details">
+                        <div class="detail-group"><label>Citizen Voice Summary</label>
+                            <div class="desc-box">
+                                <p id="m-desc">...</p>
+                            </div>
+                        </div>
+
+                        <div class="detail-grid">
+                            <div class="detail-item"><label>Date Received</label>
+                                <h3 id="m-date" style="color:var(--text);">...</h3>
+                            </div>
+                            <div class="detail-item"><label>Caller Mobile</label>
+                                <h3 id="m-phone" style="color:var(--primary); cursor:pointer;" title="Contact Citizen">
+                                    ...</h3>
+                            </div>
+                        </div>
+
+                        <div class="detail-grid">
+                            <div class="detail-item"><label>Region</label>
+                                <p id="m-region">...</p>
+                            </div>
+                            <div class="detail-item"><label>Complaint Type</label>
+                                <p id="m-type">...</p>
+                            </div>
+                        </div>
+
+                        <div class="detail-group">
+                            <label>Assigned Dept</label>
+                            <p id="m-dept" style="color:var(--primary); font-weight:700;">...</p>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button class="modal-action-btn danger" onclick="updateStatus('Rejected')"><i
+                                    class="ri-spam-line"></i> Reject</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="notification-system">
+            <button class="notif-toggle-btn" onclick="toggleNotifPanel()">
+                <i class="ri-notification-3-line"></i>
+                <span class="notif-badge" id="notifCount">3</span>
+            </button>
+
+            <div class="notif-panel" id="notifPanel">
+                <div class="notif-header">
+                    <h3>Department Updates</h3>
+                    <button class="close-notif" onclick="toggleNotifPanel()">&times;</button>
+                </div>
+                <div class="notif-list" id="notifList">
+                </div>
+            </div>
+        </div>
+        <div id="predictiveModal" class="modal-overlay" style="display: none;">
+    <div class="predictive-box">
+        <div class="pred-header">
+            <div class="pulse-ring"></div>
+            <h2><i class="ri-error-warning-fill"></i> SYSTEMIC ANOMALY FORECAST</h2>
+            <button onclick="closePredictiveModal()" class="close-btn">&times;</button>
+        </div>
+        <div class="pred-content" id="predContent">
+            <div class="loader-ai">
+                <i class="ri-brain-line"></i> Analysing City Data...
+            </div>
+        </div>
+       </div>
+    </div>
+    <div id="dispatchModal" class="modal-overlay">
+            <div class="glass-modal-box" style="width: 850px; max-height: 90vh; display: flex; flex-direction: column;">
+                <button class="close-btn" onclick="closeDispatchModal()">&times;</button>
+                <div class="modal-header">
+                    <h2><i class="ri-route-line" style="color: var(--primary);"></i> Supply Chain Logistics Tracking</h2>
+                </div>
+                
+                <div class="modal-body" style="flex-direction: column; overflow-y: auto;">
+                    
+                    <div id="dispatchTableView">
+                        <table style="width: 100%; border-collapse: separate; border-spacing: 0 8px;">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Medicine & Qty</th>
+                                    <th>Dispatch Hub</th>
+                                    <th>Order Date</th>
+                                    <th>Est. Arrival</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dispatchTableBody">
+                                </tbody>
+                        </table>
+                    </div>
+
+                    <div id="dispatchTrackerView" style="display: none; flex-direction: column; gap: 20px;">
+                        <div>
+                            <button class="btn-action" onclick="showDispatchTable()"><i class="ri-arrow-left-line"></i> Back to Orders</button>
+                        </div>
+                        
+                        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                            <h3 style="margin-bottom: 25px; color: #0f172a;">Order Status: <span id="track-id" style="color: var(--primary); font-family: monospace;"></span></h3>
+                            
+                            <div class="timeline-track">
+                                <div class="timeline-line-bg"></div>
+                                <div class="timeline-line-fill" id="track-progress"></div>
+                                
+                                <div class="timeline-step">
+                                    <div class="step-dot active"><i class="ri-building-4-line"></i></div>
+                                    <div class="step-label active">Central Govt. Warehouse<br><span style="font-weight:400; color:#94a3b8;">Packed</span></div>
+                                </div>
+                                <div class="timeline-step">
+                                    <div class="step-dot pulse" id="dot-transit"><i class="ri-truck-line"></i></div>
+                                    <div class="step-label active">Local District Hub<br><span style="font-weight:400; color:#94a3b8;">In Transit</span></div>
+                                </div>
+                                <div class="timeline-step">
+                                    <div class="step-dot" id="dot-arrived"><i class="ri-hospital-line"></i></div>
+                                    <div class="step-label">Arogya Center<br><span style="font-weight:400; color:#94a3b8;">Pending Arrival</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bill-card">
+                            <h4 style="text-transform: uppercase; color: #64748b; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 15px;"><i class="ri-bill-line"></i> Official Govt. Invoice</h4>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Itemized Supply:</span><strong id="bill-item">...</strong></div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Initiated By:</span><strong id="bill-source">...</strong></div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;"><span>Govt. Subsidized Cost:</span><strong id="bill-cost" style="color: #10b981;">...</strong></div>
+                            <div style="border-top: 1px dashed #cbd5e1; margin: 15px 0;"></div>
+                            <div style="display: flex; justify-content: space-between; font-size: 1.1rem;"><span><strong>Total Payable by CMO:</strong></span><strong style="color: #1e293b;">₹ 0.00 (Fully Covered)</strong></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <footer class="gov-footer">
+            <div class="footer-left">
+                <span>&copy; 2026 <strong>Government of India</strong></span>
+                <span class="divider">|</span>
+                <span>Developed by Team Tars</span>
+            </div>
+
+            <div class="footer-center">
+                <span class="security-warning"><i class="ri-lock-2-fill"></i> CONFIDENTIAL: FOR OFFICIAL USE ONLY</span>
+            </div>
+
+            <div class="footer-right">
+                <span>System v2.1.4 (Build 890)</span>
+                <span class="divider">|</span>
+                <a href="#" class="support-link"><i class="ri-customer-service-2-line"></i> IT Helpdesk</a>
+            </div>
+        </footer>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="script.js"></script>
+</body>
+
+</html>
+

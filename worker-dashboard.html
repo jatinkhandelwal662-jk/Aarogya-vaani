@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aarogya Vaani | Worker App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg: #f1f5f9; --primary: #2563eb; --primary-dark: #1e3a8a;
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+            --text-main: #0f172a; --text-muted: #64748b; --card-bg: #ffffff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; padding-bottom: 70px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .app-header { background: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; }
+        .worker-profile { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--primary); object-fit: cover; }
+        .worker-info h2 { font-size: 1.1rem; font-weight: 800; color: var(--text-main); }
+        .worker-info p { font-size: 0.75rem; color: var(--text-muted); font-family: monospace; font-weight: 600; }
+        .status-dot { width: 10px; height: 10px; background: var(--success); border-radius: 50%; box-shadow: 0 0 0 3px #d1fae5; }
+        .tab-content { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .earning-card { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 20px; padding: 25px; color: white; box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3); margin-bottom: 20px; position: relative; overflow: hidden; }
+        .earning-card::after { content: '₹'; position: absolute; right: -10px; bottom: -20px; font-size: 8rem; opacity: 0.1; font-weight: 800; }
+        .earning-title { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; margin-bottom: 5px; }
+        .earning-amount { font-size: 2.8rem; font-weight: 800; display: flex; align-items: center; gap: 5px; }
+        .earning-amount span { font-size: 1.2rem; font-weight: 600; opacity: 0.8; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-box { background: white; padding: 15px; border-radius: 16px; border: 1px solid #e2e8f0; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .stat-box i { font-size: 1.5rem; color: var(--primary); margin-bottom: 5px; display: block; }
+        .stat-box h3 { font-size: 1.5rem; font-weight: 800; color: var(--text-main); }
+        .stat-box p { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+        .list-card { background: white; border-radius: 16px; padding: 15px; margin-bottom: 15px; border: 1px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .lc-header { display: flex; justify-content: space-between; margin-bottom: 8px; align-items: center; }
+        .lc-id { font-family: monospace; font-weight: 800; color: var(--primary); font-size: 0.85rem; }
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
+        .b-verified { background: #d1fae5; color: #059669; }
+        .b-pending { background: #fef3c7; color: #d97706; }
+        .b-alert { background: #fee2e2; color: #dc2626; }
+        .b-camp { background: #e0f2fe; color: #0284c7; }
+        .lc-title { font-size: 1.05rem; font-weight: 800; color: var(--text-main); margin-bottom: 5px; }
+        .lc-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: white; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-around; padding: 12px 0 15px 0; z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); text-decoration: none; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .nav-item i { font-size: 1.4rem; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item.active i { transform: translateY(-3px); }
+        #suspended-overlay { position: fixed; top: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; height: 100%; background: rgba(255, 255, 255, 0.95); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(10px); text-align: center; padding: 20px; }
+        
+        /* Flashing animation for new emergency */
+        @keyframes flashRed { 
+            0% { background-color: var(--bg); } 
+            50% { background-color: #fecaca; } 
+            100% { background-color: var(--bg); } 
+        }
+        .emergency-flash { animation: flashRed 1s infinite; }
+    </style>
+</head>
+<body>
+
+    <div id="suspended-overlay">
+        <i class="ri-user-unfollow-fill" style="font-size: 5rem; color: var(--danger); margin-bottom: 10px;"></i>
+        <h1 style="color: var(--text-main); margin-bottom: 10px;">Account Suspended</h1>
+        <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">Your ASHA Worker ID has been temporarily blocked by the Chief Medical Officer.</p>
+    </div>
+
+    <header class="app-header">
+        <div class="worker-profile">
+            <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Profile" class="avatar">
+            <div class="worker-info">
+                <h2 id="w-name">MEENA SINGH</h2>
+                <p>ID: <span id="w-id">AWR-9021</span> | <span id="w-zone">South Zone</span></p>
+            </div>
+        </div>
+        <div class="status-dot"></div>
+    </header>
+
+    <main id="tab-home" class="tab-content active">
+        <h3 style="margin-bottom: 15px; font-weight: 800;">My Performance</h3>
+        <div class="earning-card">
+            <div class="earning-title">Total Incentives (This Month)</div>
+            <div class="earning-amount"><span>₹</span><span id="total-earnings">0</span></div>
+            <p style="font-size: 0.75rem; margin-top: 5px; opacity: 0.8;">Automatically credited upon AI Verification</p>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-box"><i class="ri-user-heart-fill"></i><h3 id="total-patients">0</h3><p>Patients Visited</p></div>
+            <div class="stat-box"><i class="ri-shield-check-fill" style="color: var(--success);"></i><h3 id="verified-count" style="color: var(--success);">0</h3><p>Verified Records</p></div>
+        </div>
+        <h3 style="margin-bottom: 10px; font-weight: 800;">Recent Payouts</h3>
+        <div id="payout-list"></div>
+    </main>
+
+    <main id="tab-records" class="tab-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="font-weight: 800;">My Assigned Patients</h3>
+            <i class="ri-refresh-line" style="color: var(--primary); font-size: 1.2rem; cursor: pointer;" onclick="fetchLiveData()"></i>
+        </div>
+        <div id="records-list">
+            <div style="text-align: center; color: var(--text-muted); padding: 20px;"><i class="ri-loader-4-line ri-spin" style="font-size: 2rem;"></i><br>Syncing records...</div>
+        </div>
+    </main>
+
+    <main id="tab-alerts" class="tab-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="font-weight: 800;">CMO Notifications</h3>
+            <i class="ri-refresh-line" style="color: var(--primary); font-size: 1.2rem; cursor: pointer;" onclick="fetchLiveData()"></i>
+        </div>
+        <div id="alerts-list">
+            <div style="text-align: center; color: var(--text-muted); padding: 20px;"><i class="ri-loader-4-line ri-spin" style="font-size: 2rem;"></i><br>Syncing alerts...</div>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('tab-home', this)"><i class="ri-wallet-3-fill"></i><span>Earnings</span></div>
+        <div class="nav-item" onclick="switchTab('tab-records', this)"><i class="ri-file-list-3-fill"></i><span>Records</span></div>
+        <div class="nav-item" id="nav-alerts-btn" onclick="switchTab('tab-alerts', this)"><div style="position: relative;"><i class="ri-notification-3-fill"></i></div><span>Alerts</span></div>
+    </nav>
+
+    <script>
+        const BASE_URL = "https://husbandless-kerry-unvitrescent.ngrok-free.dev";
+        const MY_AWR_ID = "AWR-9021"; 
+        const INCENTIVE_RATE = 150; 
+        
+        // 🚨 TRACKER VARIABLES FOR ALERTS
+        let knownAlertIds = new Set();
+        let isFirstLoad = true;
+
+        function switchTab(tabId, navElement) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            navElement.classList.add('active');
+            
+            // Stop flashing background if user clicks Alerts
+            if (tabId === 'tab-alerts') {
+                document.body.classList.remove('emergency-flash');
+                document.getElementById('nav-alerts-btn').style.color = 'var(--text-muted)';
+            }
+        }
+
+        // 🚨 SYNTHESIZE EMERGENCY SIREN (No MP3 needed!)
+        function playEmergencySiren() {
+            // 1. Vibrate phone (works on Android)
+            if ("vibrate" in navigator) {
+                navigator.vibrate([500, 200, 500, 200, 500, 200, 1000]);
+            }
+
+            // 2. Play Web Audio API Siren
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                osc.type = 'square'; // Harsh, loud sound
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                // Frequency sweeping up and down to sound like a siren
+                osc.frequency.setValueAtTime(400, ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(800, ctx.currentTime + 0.4);
+                osc.frequency.linearRampToValueAtTime(400, ctx.currentTime + 0.8);
+                osc.frequency.linearRampToValueAtTime(800, ctx.currentTime + 1.2);
+                osc.frequency.linearRampToValueAtTime(400, ctx.currentTime + 1.6);
+                
+                // Start and stop
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 2.0);
+            } catch (e) {
+                console.log("Audio blocked by browser. User needs to interact with page first.");
+            }
+        }
+
+        async function fetchLiveData() {
+            try {
+                // 1. FETCH WORKER STATUS
+                const workerRes = await fetch(`${BASE_URL}/api/asha-workers`, { headers: { "ngrok-skip-browser-warning": "true" } });
+                const workerData = await workerRes.json();
+                
+                let myZone = "South"; 
+                if (workerData.success) {
+                    const myProfile = workerData.data.find(w => w.id === MY_AWR_ID);
+                    if (myProfile) {
+                        document.getElementById('w-name').innerText = myProfile.name;
+                        document.getElementById('w-zone').innerText = myProfile.zone;
+                        myZone = myProfile.zone;
+                        
+                        if (myProfile.status === 'Blocked') {
+                            document.getElementById('suspended-overlay').style.display = 'flex';
+                        } else {
+                            document.getElementById('suspended-overlay').style.display = 'none';
+                        }
+                    }
+                }
+
+                // 2. FETCH PATIENT RECORDS
+                const recordsRes = await fetch(`${BASE_URL}/api/new-complaint`, { headers: { "ngrok-skip-browser-warning": "true" } });
+                const allRecords = await recordsRes.json();
+                const myRecords = allRecords.filter(r => r.dept === MY_AWR_ID);
+
+                let verifiedCount = 0;
+                const recordsHTML = [];
+                const payoutsHTML = [];
+
+                myRecords.forEach(record => {
+                    let isVerified = record.status === 'Verified';
+                    if (isVerified) verifiedCount++;
+
+                    let statusBadge = isVerified ? `<span class="badge b-verified"><i class="ri-check-double-line"></i> Verified</span>` 
+                                                 : `<span class="badge b-pending"><i class="ri-time-line"></i> ${record.status}</span>`;
+                    
+                    let actionText = isVerified ? `<div style="margin-top: 10px; font-size: 0.75rem; color: var(--success); font-weight: 700;">Incentive ₹${INCENTIVE_RATE} Credited</div>`
+                                                : `<div style="margin-top: 10px; font-size: 0.75rem; color: var(--warning); font-weight: 700; background: #fffbeb; padding: 6px; border-radius: 6px; border: 1px dashed #fde68a;">Upload link sent via SMS to patient's phone.</div>`;
+
+                    recordsHTML.push(`
+                        <div class="list-card">
+                            <div class="lc-header"><span class="lc-id">${record.id}</span>${statusBadge}</div>
+                            <div class="lc-title">${record.type}</div>
+                            <div class="lc-desc"><i class="ri-map-pin-line"></i> ${record.loc} • ${record.phone || 'No Phone'}</div>
+                            ${actionText}
+                        </div>
+                    `);
+
+                    if (isVerified) {
+                        payoutsHTML.push(`
+                            <div class="list-card" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px;">
+                                <div>
+                                    <div style="font-weight: 800; font-size: 0.95rem;">${record.type}</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">${record.id} • AI Verified</div>
+                                </div>
+                                <div style="color: var(--success); font-weight: 800;">+ ₹${INCENTIVE_RATE}</div>
+                            </div>
+                        `);
+                    }
+                });
+
+                document.getElementById('total-patients').innerText = myRecords.length;
+                document.getElementById('verified-count').innerText = verifiedCount;
+                document.getElementById('total-earnings').innerText = (verifiedCount * INCENTIVE_RATE).toLocaleString();
+
+                const recordContainer = document.getElementById('records-list');
+                if (recordsHTML.length > 0) recordContainer.innerHTML = recordsHTML.join('');
+                else recordContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px;">No patient records assigned yet.</div>`;
+
+                const payoutContainer = document.getElementById('payout-list');
+                if (payoutsHTML.length > 0) payoutContainer.innerHTML = payoutsHTML.join('');
+                else payoutContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem;">No payouts yet. Verify records to earn.</div>`;
+
+                // 3. FETCH COMMUNITY BROADCASTS (ALERTS)
+                const broadcastsRes = await fetch(`${BASE_URL}/api/broadcasts`, { headers: { "ngrok-skip-browser-warning": "true" } });
+                const allBroadcasts = await broadcastsRes.json();
+                
+                const myAlerts = allBroadcasts.filter(b => b.zone === myZone || b.zone === "All Zones" || b.zone === "All Zones (District Wide)");
+
+                const alertsHTML = [];
+                let triggerSiren = false;
+
+                myAlerts.forEach(alert => {
+                    let borderColor = "var(--primary)";
+                    let badgeClass = "b-camp";
+                    let badgeText = "Assignment";
+
+                    if (alert.type === "Emergency Alert") {
+                        borderColor = "var(--danger)"; badgeClass = "b-alert"; badgeText = "Emergency";
+                    }
+
+                    // 🚨 NEW ALERT DETECTION LOGIC 🚨
+                    if (!knownAlertIds.has(alert.id)) {
+                        knownAlertIds.add(alert.id);
+                        // If it's a new Emergency and it's NOT the very first time the page loaded
+                        if (!isFirstLoad && alert.type === "Emergency Alert") {
+                            triggerSiren = true;
+                        }
+                    }
+
+                    alertsHTML.push(`
+                        <div class="list-card" style="border-left: 4px solid ${borderColor};">
+                            <div class="lc-header"><span class="lc-id">${alert.date}</span><span class="badge ${badgeClass}">${badgeText}</span></div>
+                            <div class="lc-title">${alert.type}</div>
+                            <div class="lc-desc">${alert.msg}</div>
+                        </div>
+                    `);
+                });
+
+                // Fire the siren and flash the screen if a new emergency was found!
+                if (triggerSiren) {
+                    playEmergencySiren();
+                    document.body.classList.add('emergency-flash');
+                    document.getElementById('nav-alerts-btn').style.color = 'var(--danger)'; // Highlight nav icon red
+                }
+
+                isFirstLoad = false; // Mark initial load complete
+
+                const alertContainer = document.getElementById('alerts-list');
+                if (alertsHTML.length > 0) alertContainer.innerHTML = alertsHTML.join('');
+                else alertContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px;">No new notifications.</div>`;
+
+            } catch (error) { console.error("Sync Error:", error); }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchLiveData);
+        setInterval(fetchLiveData, 5000);
+    </script>
+</body>
+</html>
